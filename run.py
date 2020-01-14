@@ -1,3 +1,4 @@
+import json
 import networkx as nx
 import numpy as np
 import os
@@ -12,6 +13,7 @@ UCI_ONLINE_TAR_PATH = os.path.join(DATA_DIR, 'opsahl-ucsocial.tar.bz2')
 UCI_ONLINE_DIR = os.path.join(DATA_DIR, 'opsahl-ucsocial')
 UCI_ONLINE_TSV_PATH = os.path.join(UCI_ONLINE_DIR, 'out.opsahl-ucsocial')
 TEMPORAL_BUCKET_SIZE = 3 * 60 * 60  # in seconds
+DATA_SET_PATH = os.path.join(DATA_DIR, 'dataset.json')
 
 
 def _ensure_data():
@@ -34,7 +36,7 @@ def _entries_generator():
                 yield from_id, to_id, count, timestamp
 
 
-def _get_data_set():
+def _create_data_set():
     graph = nx.DiGraph()
     first_timestamp = 0
     last_timestamp = 0
@@ -63,6 +65,17 @@ def _get_data_set():
             y = derivatives[node_id, bucket]
             data_set.append((x, y))
     return data_set
+
+
+def _get_data_set():
+    if os.path.exists(DATA_SET_PATH):
+        with open(DATA_SET_PATH, 'r') as data_set_file:
+            return json.loads(data_set_file.read())
+    else:
+        data_set = _create_data_set()
+        with open(DATA_SET_PATH, 'w') as data_set_file:
+            data_set_file.write(json.dumps(data_set))
+        return data_set
 
 
 # TODO gradient descent, genetic
